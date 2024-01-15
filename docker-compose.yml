@@ -9,8 +9,8 @@ services:
     env_file:
       - .env
     environment:
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+#      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+#      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - DB_HOST=database
       - DB_NAME=dbname
       - DB_USER=dbuser
@@ -32,30 +32,38 @@ services:
     image: redis:7.0.5-alpine
     hostname: redis
 
-#  worker:
-#    build:
-#      context: .
-#    hostname: worker
-#    entrypoint: celery
-#    command: -A .celery.app worker --loglevel=info
-#    volumes:
-#      - ./service:/service
-#    links:
-#      - redis
-#    depends_on:
-#      - redis
-#
-#  flower:
-#    build:
-#      context: .
-#    hostname: flower
-#    entrypoint: celery
-#    command: -A .celery.app flower
-#    volumes:
-#      - ./service:/service
-#    links:
-#      - redis
-#    depends_on:
-#      - redis
-#    ports:
-#      - "5555:5555"
+  worker:
+    build:
+      context: .
+    hostname: worker
+    entrypoint: celery
+    command: -A celery_app.app worker --loglevel=info
+    restart: always
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
+    volumes:
+      - ./service:/service
+    links:
+      - redis
+    depends_on:
+      - database
+      - redis
+      - web-app
+
+  flower:
+    build:
+      context: .
+    hostname: flower
+    entrypoint: celery
+    command: -A celery_app.app flower
+    volumes:
+      - ./service:/service
+    links:
+      - redis
+    depends_on:
+      - redis
+    ports:
+      - "5555:5555"

@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -6,9 +6,8 @@ from django.db import models
 
 
 def upload_image_path(instance, filename):
-    model = instance.content_object._meta
-    date = datetime.datetime.now()
-    return f'{model}/images/{date}/{filename}'
+    date = datetime.today().strftime('%Y-%m-%d')
+    return f'{str(instance)}/{date}/{filename}'
 
 
 class Image(models.Model):
@@ -18,7 +17,7 @@ class Image(models.Model):
     content_object = GenericForeignKey()
 
     def __str__(self):
-        return f'Image - {self.content_object}'
+        return f'Image'
 
 
 class Video(models.Model):
@@ -28,4 +27,4 @@ class Video(models.Model):
     content_object = GenericForeignKey()
 
     def __str__(self):
-        return f'Image - {self.content_object}'
+        return f'Video'

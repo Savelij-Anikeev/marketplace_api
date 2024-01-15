@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from user_actions_app.models import BasePost
@@ -17,7 +18,7 @@ class Product(BasePost, models.Model):
     final_cost = models.DecimalField(max_digits=100, decimal_places=2, default=0)
 
     amount = models.PositiveIntegerField(default=0)
-    specs = models.JSONField()
+    specs = models.JSONField(null=True)
     tags = models.CharField(max_length=256, null=True, blank=True)
 
     vendor = models.ManyToManyField(Vendor)
@@ -25,8 +26,11 @@ class Product(BasePost, models.Model):
 
     slug = models.SlugField(default=slugify(str(name)))
 
-    photos = GenericRelation(Image, null=True, blank=True)
-    videos = GenericRelation(Video, null=True, blank=True)
+    images = GenericRelation(Image)
+    videos = GenericRelation(Video)
+
+    class Meta:
+        ordering = ['-created']
 
     def __str__(self):
         return self.name
@@ -34,6 +38,7 @@ class Product(BasePost, models.Model):
 
 class Category(BasePost, models.Model):
     name = models.CharField(max_length=128)
+    sub_category = models.ManyToManyField('Category', blank=True)
 
     def __str__(self):
         return self.name

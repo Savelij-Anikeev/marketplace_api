@@ -2,7 +2,8 @@ import json
 
 from rest_framework import serializers
 
-from static_app.serializers import ImageSerializer
+from static_app.serializers import ImageSerializer, VideoSerializer
+from .BaseProductPostService import BaseProductPostService
 from .models import Question, Review, Answer
 
 from user_app.serializers import UserAnswerSerializer
@@ -76,13 +77,14 @@ class ReviewSerializer(serializers.ModelSerializer):
     """
     Main review serializer
     """
-    author = UserAnswerSerializer()
-    answer = AnswerGenericSerializer(many=True)
-    photos = ImageSerializer(many=True)
+    author = UserAnswerSerializer(required=False, read_only=True)
+    answer = AnswerGenericSerializer(many=True, required=False, read_only=True)
+    photos = ImageSerializer(many=True, required=False)
+    videos = VideoSerializer(many=True, required=False)
 
     class Meta:
         model = Review
-        fields = ('author', 'text', 'photos', 'rating', 'created', 'updated', 'answer')
+        fields = ('author', 'text', 'photos', 'grade', 'videos', 'rating', 'created', 'updated', 'answer')
         read_only_fields = ('product_id', 'rating', 'answer')
 
 
@@ -90,11 +92,28 @@ class ReviewPostSerializer(serializers.ModelSerializer):
     """
     Used for POST requests
     """
-    photos = ImageSerializer(many=True)
+    photos = ImageSerializer(read_only=True, many=True)
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(allow_empty_file=False, use_url=False),
+        write_only=True,
+        required=False
+    )
+    videos = VideoSerializer(read_only=True, many=True)
+    uploaded_videos = serializers.ListField(
+        child=serializers.FileField(allow_empty_file=False, use_url=False),
+        write_only=True,
+        required=False
+    )
 
     class Meta:
         model = Review
-        fields = ('text', 'photos')
+        fields = ('text', 'grade', 'photos', 'videos', 'uploaded_images', 'uploaded_videos')
         read_only_fields = ('author', 'product_id', 'rating', 'created', 'updated')
 
+    def create(self, validated_data):
+        #   //// DRY ////
+        uploaded_images, uploaded_videos = BaseProductPostService.check_static(validated_data)
+        review = super().create(validated_data)
+        BaseProductPostService.give_static(uploaded_images, uploaded_videos, review)
 
+        return review

@@ -10,13 +10,14 @@ class AnswerService:
     """
     @staticmethod
     def get_source_instance(kwargs):
-        current_model = None
         if 'review_pk' in kwargs.keys():
-            obj = Review.objects.filter(product_id=kwargs.get('product_pk'))[kwargs['review_pk'] - 1]
+            index = kwargs['review_pk'] - 1
             current_model = Review
         else:
-            obj = Question.objects.filter(product_id=kwargs.get('product_pk'))[kwargs['question_pk'] - 1]
+            index = kwargs['question_pk'] - 1
             current_model = Question
+
+        obj = current_model.objects.filter(product_id=kwargs.get('product_pk'))[index]
 
         return obj, current_model
 

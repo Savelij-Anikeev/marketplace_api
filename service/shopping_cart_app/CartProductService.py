@@ -15,7 +15,7 @@ class CartProductService:
     def perform_create(serializer, request):
         current_cart = Cart.objects.get_or_create(user=request.user)[0]
         current_product = serializer.validated_data['product']
-        current_relations = current_cart.products.all()
+        current_relations = current_cart.products.all().prefetch_related('product')
 
         serializer.validated_data['cart'] = current_cart
 

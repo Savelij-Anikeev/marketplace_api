@@ -11,5 +11,3 @@ RUN pip install django-storages[s3]
 RUN adduser --disabled-password service-user
 
 USER service-user
-
-

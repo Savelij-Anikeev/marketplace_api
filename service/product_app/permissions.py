@@ -6,7 +6,7 @@ class IsAdminOrVendorStaff(permissions.BasePermission):
         return bool(
             request.user.is_authenticated and
             (request.user.is_staff or (request.user.role in ['vendor_staff', 'vendor_manager'] and
-                                       request.user.work_place in obj.vendor.all())))
+                                       request.user.work_place in obj.vendor)))
 
     def has_permission(self, request, view):
         return bool(

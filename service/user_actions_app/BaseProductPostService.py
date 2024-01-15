@@ -19,7 +19,37 @@ class BaseProductPostService:
     @staticmethod
     def validate_queryset(qs):
         """
-        Checkign if qs is empty
+        Checking if qs is empty
         """
         if qs.exists(): return qs
         raise Http404
+
+    # for serializer
+    @staticmethod
+    def check_static(validated_data):
+        uploaded_images = uploaded_videos = None
+
+        if validated_data.get("uploaded_images") is not None:
+            uploaded_images = validated_data.pop("uploaded_images")
+        if validated_data.get("uploaded_videos") is not None:
+            uploaded_videos = validated_data.pop("uploaded_videos")
+
+        return uploaded_images, uploaded_videos
+
+    @staticmethod
+    def give_static(uploaded_images, uploaded_videos, instance):
+        from static_app.models import Image, Video
+
+        if uploaded_images:
+            for img in uploaded_images:
+                Image.objects.create(content_object=instance, object_id=instance.pk, url=img)
+
+        if uploaded_videos:
+            for vid in uploaded_videos:
+                Video.objects.create(content_object=instance, object_id=instance.pk, url=vid)
+
+    @staticmethod
+    def check_if_there_is_instance(current_model, user, product_id):
+        qs = current_model.objects.filter(author=user, product_id=product_id)
+        if qs.count() > 0: return True
+        return False

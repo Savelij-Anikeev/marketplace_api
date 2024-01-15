@@ -1,20 +1,14 @@
+from django.urls import path
 from rest_framework import routers
 
-from .views import CartProductRelationViewSet
+from .views import CartProductRelationViewSet, CartListDetailAPIView, CartProductRelationClearAPIView
 
 
 router = routers.SimpleRouter()
-router.register('cart', CartProductRelationViewSet)
+router.register('cart/products', CartProductRelationViewSet)
 
 urlpatterns = [
-
+    path('cart/', CartListDetailAPIView.as_view()),
+    path('cart/clear/', CartProductRelationClearAPIView.as_view(), name='cart_clear'),
+    # path('cart/do_order/', DoOrder.as_view()),
 ] + router.urls
-
-"""
-* if there is no cart for current user add one
-
-cart/ - crud operations with *relations
-cart/<index>/ - get product by index in queryset
-
-* - CartProductRelationViewSet
-"""

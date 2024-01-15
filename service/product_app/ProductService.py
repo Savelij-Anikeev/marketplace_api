@@ -1,3 +1,4 @@
+from django.db.models import Sum, Prefetch
 from slugify import slugify
 
 
@@ -11,7 +12,8 @@ class ProductService:
         """
         Getting slug from product name and vendor
         """
-        slug_data = serializer.validated_data['name'] + ' by ' + str(serializer.validated_data['vendor'])
+        vendors = ' '.join(list(map(str, serializer.validated_data['vendor'])))
+        slug_data = serializer.validated_data['name'] + ' by ' + vendors
         return slugify(slug_data)
 
     @staticmethod
@@ -26,7 +28,9 @@ class ProductService:
         from shopping_cart_app.CartProductService import CartProductService
 
         # get all related CartProductRelations
-        relations = CartProductRelation.objects.filter(product=product)
+        from product_app.models import Product
+        relations = CartProductRelation.objects.filter(product=product).prefetch_related(
+                                                    Prefetch('product', Product.objects.all()))
         # find relations with Product
         for relation in relations:
             relation.product_cost = CartProductService.calc_product_cost(
@@ -34,3 +38,38 @@ class ProductService:
                 final_cost=product.final_cost
             )
             relation.save()
+
+    @staticmethod
+    def get_rating(obj):
+        from user_actions_app.models import Review
+        from django.core import cache
+
+        qs = Review.objects.filter(product_id=obj.pk).prefetch_related('author')
+        qs_len = qs.count()
+        grade_sum = qs.aggregate(Sum("grade")).get('grade__sum')
+        if qs_len == 0: return 0
+
+        return round(grade_sum / qs_len, 2)
+
+    @staticmethod
+    def check_static(validated_data):
+        uploaded_images = uploaded_videos = None
+
+        if validated_data.get("uploaded_images") is not None:
+            uploaded_images = validated_data.pop("uploaded_images")
+        if validated_data.get("uploaded_videos") is not None:
+            uploaded_videos = validated_data.pop("uploaded_videos")
+
+        return uploaded_images, uploaded_videos
+
+    @staticmethod
+    def give_static(uploaded_images, uploaded_videos, instance):
+        from static_app.models import Image, Video
+
+        if uploaded_images:
+            for img in uploaded_images:
+                Image.objects.create(content_object=instance, object_id=instance.pk, url=img)
+
+        if uploaded_videos:
+            for vid in uploaded_videos:
+                Video.objects.create(content_object=instance, object_id=instance.pk, url=vid)
