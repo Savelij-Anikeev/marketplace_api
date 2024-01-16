@@ -15,6 +15,7 @@ urlpatterns = [
 
     # user app
     path('api/v1/', include('user_app.urls')),
+
     # authorization
     path('api/v1/auth/', include('djoser.urls')),
     path('api/v1/auth/', include('djoser.urls.jwt')),

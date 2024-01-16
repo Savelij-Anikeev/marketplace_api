@@ -19,7 +19,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def get_fields(self):
         fields = super(CategorySerializer, self).get_fields()
-        fields['sub_category'] = CategorySerializer(many=True)
+        fields['sub_category'] = CategorySerializer(many=True, required=False)
         return fields
 
 
@@ -62,7 +62,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'description', 'rating', 'images', 'videos', 'cost', 'sale', 'final_cost',
+        fields = ('id', 'name', 'description', 'rating', 'slug', 'images', 'videos', 'cost', 'sale', 'final_cost',
                   'vendor', 'categories',)
 
 
@@ -119,12 +119,9 @@ class ProductCartSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True)
     vendor = VendorSerializer(many=True)
     categories = CategorySerializer(many=True)
-    images = serializers.SerializerMethodField()
+    images = ImageSerializer(many=True)
 
     class Meta:
         model = Product
         fields = ('name', 'cost', 'sale', 'final_cost',
                   'amount', 'slug', 'tags', 'vendor', 'categories', 'images')
-
-    def get_images(self, obj):
-        return ImageSerializer(obj.images.all()[0]).data

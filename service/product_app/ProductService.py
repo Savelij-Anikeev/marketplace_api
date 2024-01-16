@@ -1,3 +1,5 @@
+import uuid
+
 from django.db.models import Sum, Prefetch
 from slugify import slugify
 
@@ -13,7 +15,7 @@ class ProductService:
         Getting slug from product name and vendor
         """
         vendors = ' '.join(list(map(str, serializer.validated_data['vendor'])))
-        slug_data = serializer.validated_data['name'] + ' by ' + vendors
+        slug_data = serializer.validated_data['name'] + ' by ' + vendors + str(uuid.uuid4())[:25]
         return slugify(slug_data)
 
     @staticmethod

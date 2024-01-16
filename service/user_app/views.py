@@ -5,39 +5,68 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from product_app.models import Product
-from .models import UserProductRelation, UserPostRelation
+from .models import UserProductRelation, UserPostRelation, User
 
 from .serializers import (UserProductRelationSerializer, UserProductRelationListSerializer,
                           UserPostRelationSerializer, UserSerializer, UserCreateSerializer,
                           UserUpdateSerializer)
 
 
-class UserProductRelationAPIView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = UserProductRelation.objects.all()
+class UserProductRelationViewSet(viewsets.ModelViewSet):
+    queryset = UserPostRelation.objects.all().prefetch_related('user')
     serializer_class = UserProductRelationSerializer
     permission_classes = (IsAuthenticated, )
 
     def get_object(self):
-        product = get_object_or_404(Product, id=self.kwargs.get('product_pk'))
+        """
+        Letting user retrieve UserProductRelation instance
+        using product pk, to make API more user-friendly
+        """
+        product = get_object_or_404(Product, id=self.kwargs.get('pk'))
         instance, _ = UserProductRelation.objects.get_or_create(product=product, user=self.request.user)
         return instance
 
+    def perform_create(self, serializer):
+        """
+        Checking if user already have relation
+        with product
+        """
+        qs = self.get_queryset()
+        product = serializer.validated_data['product']
+        new_qs = qs.filter(user=self.request.user, product=product)
+
+        # if user do not have relation with product
+        if not new_qs.exists():
+            serializer.save()
+            return
+
+        # checking if we should delete relation
+        # cause of `is_favorite` == False
+        if serializer.validated_data['is_favorite']:
+            new_qs[0].is_favorite = serializer.validated_data['is_favorite']
+            new_qs[0].save()
+        else:
+            new_qs[0].delete()
+
     def perform_update(self, serializer):
+        """
+        Deleting relation when
+        user changes `is_favorite` with False
+        to not fill database with useless data
+        """
         obj = self.get_object()
-        if serializer.validated_data['is_favorite'] != True: obj.delete()
+        if not serializer.validated_data['is_favorite']: obj.delete()
         else:
             obj.is_favorite = True
             obj.save()
 
-
-class UserProductRelationList(generics.ListAPIView):
-    queryset = UserProductRelation
-    serializer_class = UserProductRelationListSerializer
-
     def get_queryset(self):
-        qs = UserProductRelation.objects.filter(user=self.request.user)
-        if qs.exists(): return qs
-        raise Http404
+        """
+        Getting relations that are
+        only related with the current user
+        """
+        qs = UserProductRelation.objects.filter(user=self.request.user).prefetch_related('user')
+        return qs
 
 
 class UserPostRelationAPIView(viewsets.ModelViewSet):

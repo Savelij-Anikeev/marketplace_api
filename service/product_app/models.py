@@ -24,7 +24,7 @@ class Product(BasePost, models.Model):
     vendor = models.ManyToManyField(Vendor)
     categories = models.ManyToManyField('Category')
 
-    slug = models.SlugField(default=slugify(str(name)))
+    slug = models.SlugField(default=slugify(str(name)), unique=True)
 
     images = GenericRelation(Image)
     videos = GenericRelation(Video)
@@ -38,7 +38,7 @@ class Product(BasePost, models.Model):
 
 class Category(BasePost, models.Model):
     name = models.CharField(max_length=128)
-    sub_category = models.ManyToManyField('Category', blank=True)
+    sub_category = models.ManyToManyField('Category', blank=True, null=True)
 
     def __str__(self):
         return self.name
