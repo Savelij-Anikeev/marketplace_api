@@ -13,10 +13,6 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'check_expired_sales': {
         'task': 'product_app.tasks.delete_expired_objects',
-        'schedule': 60.0,
+        'schedule': 60,
     },
-    # 'find_products_with_canceled_sale': {
-    #     'task': 'product_app.tasks.change_final_cost',
-    #     'schedule': 60.0,
-    # }
 }

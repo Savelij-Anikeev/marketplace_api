@@ -163,18 +163,18 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # LOGGING
-# LOGGING = {
-#     'version': 1,
-#     'handlers': {
-#         'console': {'class': 'logging.StreamHandler'}
-#     },
-#     'loggers': {
-#         'django.db.backends': {
-#             'handlers': ['console'],
-#             'level': 'DEBUG' if DEBUG else 'WARNING'
-#         }
-#     }
-# }
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'}
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'WARNING'
+        }
+    }
+}
 
 # CACHE
 
@@ -211,6 +211,6 @@ CACHEOPS = {
 }
 
 # PERIODIC TASKS
-CHECK_IF_SALE_EXPIRED_TIME = 60
+# CHECK_EXPIRED_SALES = os.getenv('CHECK_EXPIRED_SALES')
 
 
