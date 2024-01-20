@@ -61,6 +61,7 @@ class Answer(BasePost, models.Model):
     content_object = GenericForeignKey("content_type", "object_id")
 
     answer = GenericRelation('Answer')
+    user_relation = GenericRelation('user_app.UserPostRelation')
 
     def __str__(self):
         return f'Answer - {self.author} - {self.text}'

@@ -9,16 +9,14 @@ services:
     env_file:
       - .env
     environment:
-#      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-#      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - DB_HOST=database
       - DB_NAME=dbname
       - DB_USER=dbuser
       - DB_PASS=pass
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
-
     depends_on:
+      - redis
       - database
 
   database:
@@ -37,7 +35,7 @@ services:
       context: .
     hostname: worker
     entrypoint: celery
-    command: -A celery_app.app worker --loglevel=info
+    command: -A shop_service.celery.app worker --loglevel=info
     restart: always
     environment:
       - DB_HOST=database
@@ -49,21 +47,65 @@ services:
     links:
       - redis
     depends_on:
-      - database
-      - redis
       - web-app
+      - redis
+
+  worker1:
+    build:
+      context: .
+    hostname: worker1
+    entrypoint: celery
+    command: -A shop_service.celery.app worker --loglevel=info
+    restart: always
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
+    volumes:
+      - ./service:/service
+    links:
+      - redis
+    depends_on:
+      - web-app
+      - redis
+
+
+  celery-beat1:
+    build:
+      context: .
+    hostname: celery_beat
+    entrypoint: celery
+    command: -A shop_service.celery.app beat --loglevel=info
+    restart: always
+    environment:
+      - DB_HOST=database
+      - DB_NAME=dbname
+      - DB_USER=dbuser
+      - DB_PASS=pass
+    volumes:
+      - ./service:/service
+    links:
+      - redis
+    depends_on:
+      - web-app
+      - redis
 
   flower:
     build:
       context: .
     hostname: flower
     entrypoint: celery
-    command: -A celery_app.app flower
+    command: -A shop_service.celery.app flower
     volumes:
       - ./service:/service
     links:
       - redis
     depends_on:
+      - web-app
       - redis
+      - celery-beat1
+      - worker
+      - worker1
     ports:
       - "5555:5555"

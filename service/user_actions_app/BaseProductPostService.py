@@ -7,8 +7,8 @@ class BaseProductPostService:
     for the `BaseProductPost` View
     """
     @staticmethod
-    def get_object(queryset, kwargs):
-        pk = kwargs.get('pk')
+    def get_object(queryset, kwargs, pk_):
+        pk = kwargs.get(pk_)
         if pk < 1: raise Http404
 
         try:
@@ -50,6 +50,5 @@ class BaseProductPostService:
 
     @staticmethod
     def check_if_there_is_instance(current_model, user, product_id):
-        qs = current_model.objects.filter(author=user, product_id=product_id)
-        if qs.count() > 0: return True
-        return False
+        q = current_model.objects.filter(author=user, product_id=product_id)
+        return not q.count() > 0

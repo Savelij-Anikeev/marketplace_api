@@ -15,7 +15,7 @@ class ProductService:
         Getting slug from product name and vendor
         """
         vendors = ' '.join(list(map(str, serializer.validated_data['vendor'])))
-        slug_data = serializer.validated_data['name'] + ' by ' + vendors + str(uuid.uuid4())[:25]
+        slug_data = serializer.validated_data['name'] + ' by ' + vendors + str(uuid.uuid4())[:75]
         return slugify(slug_data)
 
     @staticmethod
@@ -75,3 +75,11 @@ class ProductService:
         if uploaded_videos:
             for vid in uploaded_videos:
                 Video.objects.create(content_object=instance, object_id=instance.pk, url=vid)
+
+    @staticmethod
+    def calc_final_price(instance):
+        try:
+            sale_amount = 1 - instance.sale.percentage / 100
+            instance.final_cost = sale_amount * float(instance.cost)
+        except:
+            return instance.cost

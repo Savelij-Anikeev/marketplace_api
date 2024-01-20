@@ -11,7 +11,6 @@ class ProductFilter(filters.FilterSet):
     categories = ProductFilterInFilter(field_name='categories__name', lookup_expr='in')
     vendor = ProductFilterInFilter(field_name='vendor__name', lookup_expr='in')
     rating = filters.RangeFilter()
-    vendor_rating = filters.RangeFilter(field_name='vendor__rating')
 
     class Meta:
         model = Product

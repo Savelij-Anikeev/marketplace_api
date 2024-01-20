@@ -1,15 +1,14 @@
 from django.contrib.auth import get_user_model
-from django.http import Http404
 from rest_framework import generics, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from product_app.models import Product
-from .models import UserProductRelation, UserPostRelation, User
+from user_actions_app.permissions import IsAdminOrOwner
+from .models import UserProductRelation, UserPostRelation
 
-from .serializers import (UserProductRelationSerializer, UserProductRelationListSerializer,
-                          UserPostRelationSerializer, UserSerializer, UserCreateSerializer,
-                          UserUpdateSerializer)
+from .serializers import (UserProductRelationSerializer, UserPostRelationSerializer,
+                          UserSerializer, UserCreateSerializer, UserUpdateSerializer)
 
 
 class UserProductRelationViewSet(viewsets.ModelViewSet):
@@ -72,45 +71,35 @@ class UserProductRelationViewSet(viewsets.ModelViewSet):
 class UserPostRelationAPIView(viewsets.ModelViewSet):
     queryset = UserPostRelation.objects.all()
     serializer_class = UserPostRelationSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsAdminOrOwner)
 
-    # def get_object(self):
-    #     from product_app.models import Product
-    #     from user_actions_app.models import Review, Question, Answer
-    #
-    #     product = get_object_or_404(Product, pk=self.kwargs.get('product_pk'))  # product instance
+    def get_object(self):
+        """
+        It was difficult but I did it
+        """
+        from product_app.models import Product
+        from .UserPostRelationService import UserPostRelationService
+        from user_actions_app.models import Answer
 
-        ## defining model
-        # if self.kwargs.get('review_pk') is not None:
-        #     parent_pk = self.kwargs.get('review_pk') - 1
-        #     parent_model = Review
-        # else:
-        #     parent_pk = self.kwargs.get('question_pk') - 1
-        #     parent_model = Question
+        # checking if there is the product instance
+        get_object_or_404(Product, pk=self.kwargs.get('product_pk'))
 
-        ## queryset doesn't support negative indexes
-        # if parent_pk < 0:
-        #     return Http404
+        # defining model
+        parent_model, parent_pk = UserPostRelationService.define_instance_and_pk(self.kwargs)
+        UserPostRelationService.validate_index(parent_pk)
+        parent_qs = parent_model.objects.filter(product_id=self.kwargs.get('product_pk'))
+        instance = UserPostRelationService.get_instance_by_pk(qs=parent_qs, pk=parent_pk)
 
-        ## if index too big
-        # try:
-        #     parent_object = parent_model.objects.filter(product_id=product.pk)[parent_pk]
-        # except IndexError:
-        #     raise Http404
+        # if source is answer
+        if self.kwargs.get('answer_pk') is not None:
+            answer_pk = self.kwargs.get('answer_pk')-1
+            UserPostRelationService.validate_index(answer_pk)
+            instance = UserPostRelationService.get_instance_by_pk(instance.answer.all(), answer_pk)
 
-        ## if self.kwargs.get('answer_pk') is None:
-        # target = parent_object
-        # obj, _ = UserPostRelation.objects.get_or_create(object_id=target.pk,
-        #                                                 post=target,
-        #                                                 user=self.request.user,
-        #                                                 grade=1)
-        # parent_object = Review.objects.filter(product_id=product.pk)[0]
-        # obj = UserPostRelation.objects.create(object_id=parent_object.pk,
-        #                                                 post=parent_object,
-        #                                                  user=self.request.user,
-        #                                                  grade=1)
-        # obj.save()
-        # return obj
+        # recalculating rating
+
+        return UserPostRelationService.relation_logic(instance=instance, grade=self.request.data.get('grade', 0),
+                                                      user=self.request.user)
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -7,22 +7,34 @@ from .models import Product, Category, Sale
 from static_app.serializers import ImageSerializer, VideoSerializer
 
 
+# cats
 class CategorySerializer(serializers.ModelSerializer):
     """
     Used for `Category` model
     """
     # top_category = serializers.SerializerMethodField()
+    child = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = ('id', 'name', 'sub_category')
+        fields = ('id', 'name', 'parent', 'child')
 
     def get_fields(self):
         fields = super(CategorySerializer, self).get_fields()
         fields['sub_category'] = CategorySerializer(many=True, required=False)
         return fields
 
+    def get_child(self, obj):
+        return CategorySerializer(obj.get_children(), many=True).data
 
+
+class CategoryProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('id', 'name')
+
+
+# sales
 class SaleSerializer(serializers.ModelSerializer):
     """
     Used for `Sale` model
@@ -32,22 +44,44 @@ class SaleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# products
+class ProductRelatedProductSerializer(serializers.ModelSerializer):
+    images = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'slug', 'images', 'amount')
+
+    def get_images(self, obj):
+        # return ImageSerializer(obj.images.all()[0]).data
+        a = []
+        for i in obj.all():
+            a.append(i.images.all()[0])
+        return a
+
+
 class ProductDetailSerializer(serializers.ModelSerializer):
     """
     General serializer for `Product` model
     """
     vendor = VendorSerializer(many=True)
-    categories = CategorySerializer(many=True)
+    categories = CategoryProductSerializer(many=True)
     sale = SaleSerializer()
     images = ImageSerializer(many=True)
     videos = VideoSerializer(many=True)
+    related_products = serializers.SerializerMethodField(required=False)
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'description', 'rating', 'cost', 'sale', 'final_cost',
-                  'amount', 'slug', 'images', 'videos',
-                  'tags', 'vendor', 'categories', 'specs',)
+        fields = ('id', 'name', 'description', 'rating',
+                  'cost', 'sale', 'final_cost', 'amount', 'slug',
+                  'related_products', 'images', 'videos', 'tags',
+                  'vendor', 'categories', 'specs',)
         read_only_fields = ('vendor', 'slug', 'final_cost', )
+
+    def get_related_products(self, obj):
+        qs = obj.related_products.all()
+        return ProductRelatedProductSerializer(qs, many=True).data
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -55,14 +89,16 @@ class ProductListSerializer(serializers.ModelSerializer):
     Used for GET requests for `Product` model
     """
     vendor = VendorSerializer(many=True)
-    categories = CategorySerializer(many=True)
+    categories = CategoryProductSerializer(many=True)
     sale = serializers.StringRelatedField(many=False)
     images = ImageSerializer(many=True)
     videos = VideoSerializer(many=True)
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'description', 'rating', 'slug', 'images', 'videos', 'cost', 'sale', 'final_cost',
+        fields = ('id', 'name', 'description', 'rating',
+                  'slug', 'images', 'videos',
+                  'cost', 'sale', 'final_cost',
                   'vendor', 'categories',)
 
 
@@ -81,15 +117,14 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
-    # vendor = VendorSerializer(required=False, many=True)
-    # categories = CategorySerializer(many=)
-    # vendor = serializers.ListField(child=serializers.IntegerField(), required=False)
+    related_products = ProductRelatedProductSerializer(required=False)
 
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'cost', 'sale', 'final_cost',
-                  'amount', 'slug', 'uploaded_images', 'uploaded_videos',
-                  'tags', 'vendor', 'categories', 'specs', 'images', 'videos')
+                  'amount', 'slug', 'related_products', 'uploaded_images',
+                  'uploaded_videos', 'tags', 'vendor', 'categories',
+                  'specs', 'images', 'videos')
         read_only_fields = ('slug', 'final_cost')
 
     def create(self, validated_data):
@@ -118,7 +153,7 @@ class ProductChangeSerializer(serializers.ModelSerializer):
 class ProductCartSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True)
     vendor = VendorSerializer(many=True)
-    categories = CategorySerializer(many=True)
+    categories = CategoryProductSerializer(many=True)
     images = ImageSerializer(many=True)
 
     class Meta:

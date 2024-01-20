@@ -7,14 +7,14 @@ from .views import QuestionViewSet, ReviewViewSet, AnswerViewSet
 urlpatterns = [
     # Questions
     path('products/<int:product_pk>/questions/', QuestionViewSet.as_view({'get': 'list', 'post': 'create'})),
-    path('products/<int:product_pk>/questions/<int:pk>/', QuestionViewSet.as_view({
+    path('products/<int:product_pk>/questions/<int:question_pk>/', QuestionViewSet.as_view({
         'get': 'retrieve', 'patch': 'partial_update',
         'put': 'update', 'delete': 'destroy'
     })),
 
     # Reviews
     path('products/<int:product_pk>/reviews/', ReviewViewSet.as_view({'get': 'list', 'post': 'create'})),
-    path('products/<int:product_pk>/reviews/<int:pk>/', ReviewViewSet.as_view({
+    path('products/<int:product_pk>/reviews/<int:review_pk>/', ReviewViewSet.as_view({
         'get': 'retrieve', 'patch': 'partial_update',
         'put': 'update', 'delete': 'destroy'
     })),

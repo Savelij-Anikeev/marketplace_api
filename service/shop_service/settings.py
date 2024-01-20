@@ -5,6 +5,10 @@ import os
 
 load_dotenv('../../.env')
 
+from django.conf import settings
+
+settings.configure()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@wrl0nj+2!6slh_+86%g$qk@*vi+8*w_nl217!&d6k9w+g@@w-'
 DEBUG = True
@@ -22,10 +26,11 @@ INSTALLED_APPS = [
     'djoser',
     'rest_framework',
     'celery',
+    'django_celery_beat',
     "debug_toolbar",
-    'cachalot',
     'django_filters',
     'mptt',
+    'corsheaders',
 
     'product_app',
     'user_actions_app',
@@ -36,7 +41,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -110,7 +119,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = "redis://redis:6379"
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 
 AUTH_USER_MODEL = 'user_app.User'
 
@@ -143,8 +152,8 @@ SIMPLE_JWT = {
 }
 
 DJOSER = {
-    # 'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
-    # 'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
+    'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
+    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
 }
@@ -154,18 +163,18 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # LOGGING
-LOGGING = {
-    'version': 1,
-    'handlers': {
-        'console': {'class': 'logging.StreamHandler'}
-    },
-    'loggers': {
-        'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'WARNING'
-        }
-    }
-}
+# LOGGING = {
+#     'version': 1,
+#     'handlers': {
+#         'console': {'class': 'logging.StreamHandler'}
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG' if DEBUG else 'WARNING'
+#         }
+#     }
+# }
 
 # CACHE
 
@@ -186,5 +195,22 @@ INTERNAL_IPS = [
 DEBUG_TOOLBAR_CONFIG = {
     "SHOW_TOOLBAR_CALLBACK": lambda request: True,
 }
-# DEBUG_TOOLBAR_PANELS = ['cachalot.panels.CachalotPanel',]
-# CACHALOT_ENABLED = False
+
+# cacheops
+
+CACHEOPS_REDIS = "redis://localhost:6379/1"
+
+CACHEOPS_DEFAULTS = {
+    'timeout': 60*60
+}
+CACHEOPS = {
+    'user_app.user': {'ops': 'get', 'timeout': 60*15},
+    'user_app.*': {'ops': ('fetch', 'get')},
+    'auth.permission': {'ops': 'all'},
+    '*.*': {},
+}
+
+# PERIODIC TASKS
+CHECK_IF_SALE_EXPIRED_TIME = 60
+
+

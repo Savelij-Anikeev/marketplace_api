@@ -8,12 +8,14 @@ from static_app.models import Image, Video
 
 from slugify import slugify
 
+from mptt.models import MPTTModel, TreeForeignKey, TreeManager
+
 
 class Product(BasePost, models.Model):
     name = models.CharField(max_length=128)
     description = models.CharField(max_length=1024)
 
-    sale = models.ForeignKey('Sale', on_delete=models.PROTECT, blank=True, null=True)
+    sale = models.ForeignKey('Sale', on_delete=models.SET_NULL, blank=True, null=True, related_name='products')
     cost = models.DecimalField(max_digits=100, decimal_places=2)
     final_cost = models.DecimalField(max_digits=100, decimal_places=2, default=0)
 
@@ -24,8 +26,9 @@ class Product(BasePost, models.Model):
     vendor = models.ManyToManyField(Vendor)
     categories = models.ManyToManyField('Category')
 
-    slug = models.SlugField(default=slugify(str(name)), unique=True)
+    slug = models.SlugField(default=slugify(str(name)), unique=True, max_length=500)
 
+    related_products = models.ManyToManyField('Product', null=True, blank=True)
     images = GenericRelation(Image)
     videos = GenericRelation(Video)
 
@@ -36,17 +39,25 @@ class Product(BasePost, models.Model):
         return self.name
 
 
-class Category(BasePost, models.Model):
+class Category(BasePost, MPTTModel):
+    objects = TreeManager()
+
     name = models.CharField(max_length=128)
-    sub_category = models.ManyToManyField('Category', blank=True, null=True)
+    parent = TreeForeignKey('Category', blank=True, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
+
+    class MPTTMeta:
+        order_insertion_by = ['name']
 
 
 # sales
 class Sale(models.Model):
     percentage = models.PositiveIntegerField()  # add validator 0-100%
+    expire_date = models.DateTimeField(null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'{self.percentage}%'
+        status = 'active' if self.is_active else 'expired'
+        return f'{self.percentage}% - {status}'

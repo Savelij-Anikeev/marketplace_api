@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Prefetch
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.http import Http404
 
 from rest_framework import viewsets, status
 from rest_framework.generics import get_object_or_404
@@ -24,18 +25,13 @@ class BaseProductPostView(viewsets.ModelViewSet):
     Base class for Review and Question
     models because they have same functional
     """
-    def get_object(self):
-        """
-        Getting proper object
-        """
-        return BaseProductPostService.get_object(queryset=self.get_queryset(), kwargs=self.kwargs)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        is_failure = self.perform_create(serializer)
+        is_ok = self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        if is_failure:
+        if is_ok:
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         return Response({'detail': 'You already made Question/Review on this product.'})
 
@@ -43,22 +39,20 @@ class BaseProductPostView(viewsets.ModelViewSet):
         """
         Adding information to the serializer
         """
-        # if product exits
         product_id = self.kwargs.get('product_pk')
-        _ = get_object_or_404(Product, pk=product_id)
 
-        # if person already post review or question
-        current_model = Review if self.kwargs.get('review_pk') is not None else Question
-        is_failure = BaseProductPostService.check_if_there_is_instance(current_model,
-                                                                       self.request.user,
-                                                                       product_id)
-        if not is_failure:
-            # changing data
+        if self.request.get_full_path().split('/')[-2] == 'reviews': current_model = Review
+        else: current_model = Question
+
+        try:
+            get_object_or_404(current_model, author=self.request.user, product_id=product_id)
+            return False
+        except Http404:
             serializer.validated_data['product_id'] = product_id
             serializer.validated_data['author'] = self.request.user
             serializer.validated_data['rating'] = 0
             serializer.save()
-        return is_failure
+            return True
 
     def get_permissions(self):
         """
@@ -78,6 +72,9 @@ class QuestionViewSet(BaseProductPostView):
     """
     serializer_class = QuestionSerializer
 
+    def get_object(self):
+        return BaseProductPostService.get_object(queryset=self.get_queryset(), kwargs=self.kwargs, pk_='question_pk')
+
     def get_queryset(self):
         """
         Getting queryset
@@ -88,9 +85,6 @@ class QuestionViewSet(BaseProductPostView):
             qs=Question.objects.filter(product_id=product_id)
         )
         return qs
-
-    def perform_create(self, serializer):
-        super().perform_create(serializer)
 
     def get_serializer_class(self):
         """
@@ -108,8 +102,8 @@ class ReviewViewSet(BaseProductPostView):
     """
     serializer_class = ReviewSerializer
 
-    def perform_create(self, serializer):
-        super().perform_create(serializer)
+    def get_object(self):
+        return BaseProductPostService.get_object(queryset=self.get_queryset(), kwargs=self.kwargs, pk_='review_pk')
 
     def get_queryset(self):
         """

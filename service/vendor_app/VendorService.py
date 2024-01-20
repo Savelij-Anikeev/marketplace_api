@@ -1,6 +1,3 @@
-from django.db.models import Sum
-
-
 class VendorService:
     @staticmethod
     def get_rating(obj):
@@ -14,5 +11,6 @@ class VendorService:
                 rating_sum += instance.rating
                 count += 1
 
-        if count == 0: return 0
+        if count == 0:
+            return 0
         return round(rating_sum / count, 2)

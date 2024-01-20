@@ -58,6 +58,11 @@ class CartSerializer(serializers.ModelSerializer):
         details = []
         is_valid = True
 
+        if not obj.products.all().exists():
+            is_valid = False
+            details.append('Cart is empty!')
+            return is_valid, details
+
         for relation in obj.products.all():
             current_amount = relation.amount
             product = Product.objects.get(pk=relation.product.id)
