@@ -6,6 +6,8 @@ from .views import UserProductRelationViewSet, UserPostRelationAPIView
 
 
 router = routers.SimpleRouter()
+# router.register('auth/users', UserViewSet)
+# router.register('auth/users/me', UserViewSet)
 router.register('auth/users/me/favorites', UserProductRelationViewSet)
 
 urlpatterns = [

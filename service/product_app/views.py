@@ -61,7 +61,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         # checking if there is `sale` instance
         try:
             sale_instance = get_object_or_404(Sale, pk=int(request.data.get('sale')))
-        except TypeError:
+        except ValueError:
             sale_instance = None
 
         # checking `vendor` and putting user's `work_place` id
