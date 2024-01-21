@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics, viewsets
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, SAFE_METHODS
+from rest_framework.response import Response
 
 from product_app.models import Product
 from user_actions_app.permissions import IsAdminOrOwner
@@ -100,15 +101,3 @@ class UserPostRelationAPIView(viewsets.ModelViewSet):
 
         return UserPostRelationService.relation_logic(instance=instance, grade=self.request.data.get('grade', 0),
                                                       user=self.request.user)
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = get_user_model().objects.all()
-    permission_classes = (IsAdminUser,)
-
-    def get_serializer_class(self):
-        if self.action == 'create':
-            return UserCreateSerializer
-        elif self.action in ('update', 'partial_update'):
-            return UserUpdateSerializer
-        return UserSerializer

@@ -3,33 +3,44 @@ from rest_framework import serializers
 
 from product_app.serializers import ProductListSerializer
 from vendor_app.serializers import VendorSerializer
-from .models import User, UserProductRelation, UserPostRelation
+from .models import UserProductRelation, UserPostRelation
 
 
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.SerializerMethodField()
-    work_place = VendorSerializer()
+    role = serializers.SerializerMethodField(required=False)
+    work_place = VendorSerializer(required=False, read_only=True)
 
     class Meta:
         model = get_user_model()
-        fields = ('id', 'username', 'email', 'work_place', 'role', 'is_superuser')
+        fields = ('id', 'username', 'email', 'work_place', 'role', 'is_superuser', 'is_active')
 
     def get_role(self, obj):
         return obj.role
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    role = serializers.SerializerMethodField()
+    # role = serializers.SerializerMethodField()
+    # password = serializers.CharField(required=True)
 
     class Meta:
         model = get_user_model()
-        fields = ('id', 'username', 'email', 'password', 'work_place', 'role', 'is_superuser')
+        fields = ('id', 'username', 'email', 'password')
+        #, 'work_place', 'role', 'is_superuser'
 
     def get_role(self, obj):
         return obj.role
 
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+        instance.is_active = False
+        instance.save()
+        return instance
+
 
 class UserUpdateSerializer(serializers.ModelSerializer):
+    work_place = serializers.IntegerField(required=False)
+    role = serializers.CharField(required=False)
+
     class Meta:
         model = get_user_model()
         fields = ('id', 'username', 'email', 'password', 'work_place', 'role', 'is_superuser')

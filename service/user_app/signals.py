@@ -13,3 +13,7 @@ def recalculate_rating_on_create(instance, *args, **kwargs):
 @receiver(pre_save, sender=UserPostRelation)
 def recalculate_rating_on_create(instance, *args, **kwargs):
     recalculate_rating.delay(instance=instance)
+
+
+
+

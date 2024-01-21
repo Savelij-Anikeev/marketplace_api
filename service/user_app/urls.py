@@ -2,11 +2,10 @@ from django.urls import path
 
 from rest_framework import routers
 
-from .views import UserViewSet, UserProductRelationViewSet, UserPostRelationAPIView
+from .views import UserProductRelationViewSet, UserPostRelationAPIView
 
 
 router = routers.SimpleRouter()
-router.register('auth/users', UserViewSet)
 router.register('auth/users/me/favorites', UserProductRelationViewSet)
 
 urlpatterns = [

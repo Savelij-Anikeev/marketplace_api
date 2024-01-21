@@ -15,9 +15,13 @@ class User(AbstractUser):
     photo = models.ImageField(null=True, blank=True)
     phone = models.CharField(max_length=16, null=True, blank=True)  # set null=False, it is required
     balance = models.PositiveIntegerField(default=0)
+    email = models.EmailField(unique=True)
 
     work_place = models.ForeignKey('vendor_app.Vendor', on_delete=models.SET_NULL, null=True, blank=True)
     role = models.CharField(max_length=24, choices=ROLES, default=ROLES[0][0])
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
 
 class UserProductRelation(models.Model):
