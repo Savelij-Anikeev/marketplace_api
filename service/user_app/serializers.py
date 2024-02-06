@@ -1,18 +1,22 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from product_app.serializers import ProductListSerializer
+from product_app.serializers import ProductUserRelationSerializer
 from vendor_app.serializers import VendorSerializer
 from .models import UserProductRelation, UserPostRelation
 
+from .UserService import UserService
 
+
+# user
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField(required=False)
     work_place = VendorSerializer(required=False, read_only=True)
 
     class Meta:
         model = get_user_model()
-        fields = ('id', 'username', 'email', 'work_place', 'role', 'is_superuser', 'is_active')
+        fields = ('id', 'first_name', 'last_name', 'username', 'email', 'phone', 'work_place',
+                  'role', 'is_superuser', 'is_active')
 
     def get_role(self, obj):
         return obj.role
@@ -21,16 +25,27 @@ class UserSerializer(serializers.ModelSerializer):
 class UserCreateSerializer(serializers.ModelSerializer):
     # role = serializers.SerializerMethodField()
     # password = serializers.CharField(required=True)
+    # username = serializers.StringRelatedField(required=False, allow_null=True)
 
     class Meta:
         model = get_user_model()
-        fields = ('id', 'username', 'email', 'password')
-        #, 'work_place', 'role', 'is_superuser'
+        fields = ('id', 'first_name', 'last_name', 'email',
+                  'password', 'phone', 'work_place', 'role', 'is_superuser')
 
     def get_role(self, obj):
         return obj.role
 
     def create(self, validated_data):
+        """
+        by default Django sets is_active == True,
+        we change this behaviour.
+        Although, we generate username for user
+        through method of  `UserService`
+        """
+        validated_data['username'] = UserService.generate_username(
+            first_name=validated_data['first_name'].lower(),
+            last_name=validated_data['last_name'].lower()
+        )
         instance = super().create(validated_data)
         instance.is_active = False
         instance.save()
@@ -55,21 +70,23 @@ class UserAnswerSerializer(serializers.ModelSerializer):
         fields = ('id', 'photo', 'username')
 
 
+# user product
 class UserProductRelationSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = UserProductRelation
-        fields = '__all__'
+        fields = ('is_favorite', 'product')
 
 
 class UserProductRelationListSerializer(serializers.ModelSerializer):
-    product = ProductListSerializer()
-    user = UserAnswerSerializer()
+    product = ProductUserRelationSerializer()
 
     class Meta:
         model = UserProductRelation
-        fields = ('id', 'user', 'is_favorite', 'product')
+        fields = ('is_favorite', 'product')
 
 
+# user post
 class UserPostRelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserPostRelation

@@ -13,7 +13,10 @@ def delete_expired_objects(model_name='Sale', app_name='product_app', **kwargs):
     # this task every time this app starts
 
     model = apps.get_model(app_name, model_name)
-    for instance in model.objects.filter(expire_date__lt=timezone.now()):
+    qs = model.objects.filter(is_active=True, expire_date__lt=timezone.now())
+    if not qs.exists(): return
+
+    for instance in qs:
         instance.is_active = False
         instance.save()
         related_products = instance.products.all()

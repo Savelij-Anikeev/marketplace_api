@@ -55,7 +55,8 @@ class ProductRelatedProductSerializer(serializers.ModelSerializer):
     def get_images(self, obj):
         # return ImageSerializer(obj.images.all()[0]).data
         a = []
-        for i in obj.all():
+        # for i in obj.all():
+        for i in obj.related_products.all():
             a.append(i.images.all()[0])
         return a
 
@@ -160,3 +161,14 @@ class ProductCartSerializer(serializers.ModelSerializer):
         model = Product
         fields = ('name', 'cost', 'sale', 'final_cost',
                   'amount', 'slug', 'tags', 'vendor', 'categories', 'images')
+
+
+class ProductUserRelationSerializer(serializers.ModelSerializer):
+    images = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'images', 'cost', 'final_cost')
+
+    def get_images(self, obj):
+        return ImageSerializer(obj.images.all()[0]).data

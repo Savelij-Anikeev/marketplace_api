@@ -1,15 +1,13 @@
-from django.contrib.auth import get_user_model
-from rest_framework import generics, viewsets
+from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, SAFE_METHODS
-from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from product_app.models import Product
 from user_actions_app.permissions import IsAdminOrOwner
 from .models import UserProductRelation, UserPostRelation
 
-from .serializers import (UserProductRelationSerializer, UserPostRelationSerializer,
-                          UserSerializer, UserCreateSerializer, UserUpdateSerializer)
+from .serializers import (UserProductRelationSerializer, UserProductRelationListSerializer,
+                          UserPostRelationSerializer,)
 
 
 class UserProductRelationViewSet(viewsets.ModelViewSet):
@@ -34,6 +32,7 @@ class UserProductRelationViewSet(viewsets.ModelViewSet):
         qs = self.get_queryset()
         product = serializer.validated_data['product']
         new_qs = qs.filter(user=self.request.user, product=product)
+        serializer.validated_data['user'] = self.request.user
 
         # if user do not have relation with product
         if not new_qs.exists():
@@ -67,6 +66,10 @@ class UserProductRelationViewSet(viewsets.ModelViewSet):
         """
         qs = UserProductRelation.objects.filter(user=self.request.user).prefetch_related('user')
         return qs
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']: return UserProductRelationListSerializer
+        return UserProductRelationSerializer
 
 
 class UserPostRelationAPIView(viewsets.ModelViewSet):
