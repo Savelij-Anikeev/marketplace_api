@@ -1,4 +1,4 @@
 .idea
 media
 .env
-./service/media/
+/service/media/
