@@ -1,0 +1,6 @@
+1. fix categories ✔️
+2. add orders app ✔️
+   add transactions to process adding new orders ✔️
+   clear cart after adding related new order ✔️
+3. Add filtering for orders (copy from microservice )
+4. Integrate orders app with payment system

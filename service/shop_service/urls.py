@@ -29,6 +29,9 @@ urlpatterns = [
     # cart app
     path('api/v1/', include('shopping_cart_app.urls')),
 
+    # orders app
+    path('api/v1/', include('orders_app.urls')),
+
     # user app
     path('api/v1/', include('vendor_app.urls')),
 

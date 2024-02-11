@@ -21,7 +21,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=24, choices=ROLES, default=ROLES[0][0])
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'pk']
+    REQUIRED_FIELDS = ['username']
 
 
 class UserProductRelation(models.Model):

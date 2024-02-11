@@ -74,25 +74,3 @@ class CartProductRelationClearAPIView(generics.DestroyAPIView):
         qs = self.get_object()
         qs.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-# class DoOrder(views.APIView):
-#     permission_classes = (IsAuthenticated, )
-#
-#     def post(self, *args, **kwargs):
-#         # creating new order
-#         order_service = (os.getenv('ORDER_SERVICE_PROTOCOL') + '://' + os.getenv('ORDER_SERVICE_URL')
-#                          + ':' + os.getenv('ORDER_SERVICE_PORT') + '/api/v1/orders/')
-#         cart = Cart.objects.get(user=self.request.user)
-#         request_data = CartSerializer(cart).data
-#
-#         if request_data['products'] is None:
-#             return Response({'detail': 'You have to add products to cart before creating order!'})
-#
-#         requests.request(method='POST', url=order_service, data=request_data)
-#
-#         # clearing cart
-#         HttpResponseRedirect(redirect_to=reverse('cart_clear'))
-#
-#     def get(self, request):
-#         return Response({'status': 'You should do empty \POST\ request \n to make new order'})

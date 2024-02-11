@@ -36,7 +36,8 @@ class UserProductRelationViewSet(viewsets.ModelViewSet):
 
         # if user do not have relation with product
         if not new_qs.exists():
-            serializer.save()
+            if serializer.validated_data['is_favorite']:
+                return serializer.save()
             return
 
         # checking if we should delete relation

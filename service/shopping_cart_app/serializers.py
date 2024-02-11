@@ -33,7 +33,6 @@ class CartProductRelationGeneralSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
     products = CartProductRelationCartSerializer(many=True)
     cost = serializers.SerializerMethodField()
     is_valid = serializers.SerializerMethodField()

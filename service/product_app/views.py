@@ -116,8 +116,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return [permission() for permission in self.permission_classes]
 
     def get_queryset(self):
-        qs = [instance for instance in self.queryset if instance.parent is None]
-        return qs
+        if self.action == 'list':
+            return [instance for instance in self.queryset if instance.parent is None]
+        return Category.objects.all().prefetch_related('parent')
 
 
 class SaleViewSet(viewsets.ModelViewSet):

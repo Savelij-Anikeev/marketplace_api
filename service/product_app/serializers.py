@@ -81,9 +81,11 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ('vendor', 'slug', 'final_cost', )
 
     def get_related_products(self, obj):
-        qs = obj.related_products.all()
-        return ProductRelatedProductSerializer(qs, many=True).data
-
+        try:
+            qs = obj.related_products.all()
+            return ProductRelatedProductSerializer(qs, many=True).data
+        except:
+            return None
 
 class ProductListSerializer(serializers.ModelSerializer):
     """
@@ -159,7 +161,7 @@ class ProductCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('name', 'cost', 'sale', 'final_cost',
+        fields = ('id', 'name', 'cost', 'sale', 'final_cost',
                   'amount', 'slug', 'tags', 'vendor', 'categories', 'images')
 
 
