@@ -1,6 +1,13 @@
-1. fix categories ✔️
-2. add orders app ✔️
-   add transactions to process adding new orders ✔️
-   clear cart after adding related new order ✔️
-3. Add filtering for orders (copy from microservice )
-4. Integrate orders app with payment system
+11.02.2024
+Orders:
+   1. Fix categories. ✔️
+   2. Add orders app. ✔️
+      Add transactions to process adding new orders. ✔️
+      Clear cart after adding related new order. ✔️
+   3. Add filtering for orders (copy from microservice). ✔️
+   4. Integrate orders app with payment system.
+
+Vendors:
+   1. Only admin can add vendors and admin/manger can set managers and employees to vendors. ✔️
+   2. Manager can change vendor's name and photo. ✔️
+   3. Manager and admin can hire users and set their work place and role. ✔️

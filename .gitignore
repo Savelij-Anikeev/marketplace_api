@@ -1,4 +1,7 @@
 service/media
+
 .idea
 .env
-.taskList.txt
+
+taskList.txt
+req.py

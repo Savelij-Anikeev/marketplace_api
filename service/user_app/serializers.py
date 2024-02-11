@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
+
 from rest_framework import serializers
 
 from product_app.serializers import ProductUserRelationSerializer
@@ -42,6 +44,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         Although, we generate username for user
         through method of  `UserService`
         """
+        validated_data['password'] =  make_password(validated_data['password'])
         validated_data['username'] = UserService.generate_username(
             first_name=validated_data['first_name'].lower(),
             last_name=validated_data['last_name'].lower()

@@ -9,31 +9,33 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 admin.autodiscover()
 
+api_prefix = 'api/v1/'
+
 urlpatterns = [
     # admin panel
     path('admin/', admin.site.urls),
 
     # user app
-    path('api/v1/', include('user_app.urls')),
+    path(api_prefix, include('user_app.urls')),
 
     # authorization
-    path('api/v1/auth/', include('djoser.urls')),
-    path('api/v1/auth/', include('djoser.urls.jwt')),
+    path(api_prefix + 'auth/', include('djoser.urls')),
+    path(api_prefix + 'auth/', include('djoser.urls.jwt')),
 
     # user actions app
-    path('api/v1/', include('user_actions_app.urls')),
+    path(api_prefix, include('user_actions_app.urls')),
 
     # product app
-    path('api/v1/', include('product_app.urls')),
+    path(api_prefix, include('product_app.urls')),
 
     # cart app
-    path('api/v1/', include('shopping_cart_app.urls')),
+    path(api_prefix, include('shopping_cart_app.urls')),
 
     # orders app
-    path('api/v1/', include('orders_app.urls')),
+    path(api_prefix, include('orders_app.urls')),
 
     # user app
-    path('api/v1/', include('vendor_app.urls')),
+    path(api_prefix, include('vendor_app.urls')),
 
     path("__debug__/", include("debug_toolbar.urls")),
 
