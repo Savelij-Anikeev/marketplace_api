@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@wrl0nj+2!6slh_+86%g$qk@*vi+8*w_nl217!&d6k9w+g@@w-'
 DEBUG = True
 
-ALLOWED_HOSTS = ['213.171.15.22']
+ALLOWED_HOSTS = ['213.171.15.22', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -164,7 +164,7 @@ SIMPLE_JWT = {
    "AUTH_COOKIE_SAMESITE": "None"
 }
 
-
+AUTH_PASSWORD_VALIDATORS = []
 DJOSER = {
     'USER_ID_FIELD': 'username',
     'LOGIN_FIELD': 'email',
@@ -173,6 +173,7 @@ DJOSER = {
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
+    'PASSWORD_VALIDATORS': [],
 
     'SERIALIZERS': {
         'current_user': 'user_app.serializers.UserSerializer',

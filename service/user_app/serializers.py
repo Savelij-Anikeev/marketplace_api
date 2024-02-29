@@ -10,6 +10,7 @@ from .models import UserProductRelation, UserPostRelation
 from .UserService import UserService
 
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
+from djoser.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -35,7 +36,7 @@ class UserCreateSerializer(BaseUserCreateSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ('data',)
+        fields = ('email', 'password', 'data')
 
     def get_role(self, obj):
         return obj.role
