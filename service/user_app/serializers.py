@@ -9,6 +9,9 @@ from .models import UserProductRelation, UserPostRelation
 
 from .UserService import UserService
 
+from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 # user
 class UserSerializer(serializers.ModelSerializer):
@@ -24,15 +27,15 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.role
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class UserCreateSerializer(BaseUserCreateSerializer):
     # role = serializers.SerializerMethodField()
     # password = serializers.CharField(required=True)
     # username = serializers.StringRelatedField(required=False, allow_null=True)
+    data = serializers.SerializerMethodField()
 
     class Meta:
         model = get_user_model()
-        fields = ('id', 'first_name', 'last_name', 'email',
-                  'password', 'phone', 'work_place', 'role', 'is_superuser')
+        fields = ('data',)
 
     def get_role(self, obj):
         return obj.role
@@ -45,14 +48,21 @@ class UserCreateSerializer(serializers.ModelSerializer):
         through method of  `UserService`
         """
         validated_data['password'] =  make_password(validated_data['password'])
-        validated_data['username'] = UserService.generate_username(
-            first_name=validated_data['first_name'].lower(),
-            last_name=validated_data['last_name'].lower()
-        )
+        validated_data['username'] = UserService.generate_username()
         instance = super().create(validated_data)
         instance.is_active = False
         instance.save()
         return instance
+
+    def get_data(self, obj):
+        refresh = RefreshToken.for_user(obj)
+        return {
+            'user': UserSerializer(obj).data,
+            'token': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }
+        }
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

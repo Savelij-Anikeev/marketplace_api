@@ -18,6 +18,9 @@ urlpatterns = [
     # user app
     path(api_prefix, include('user_app.urls')),
 
+    # fixing tokens
+    path(api_prefix + 'auth/', include('token_app.urls')),
+
     # authorization
     path(api_prefix + 'auth/', include('djoser.urls')),
     path(api_prefix + 'auth/', include('djoser.urls.jwt')),

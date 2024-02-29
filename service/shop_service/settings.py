@@ -25,6 +25,7 @@ INSTALLED_APPS = [
 
     'djoser',
     'rest_framework',
+    'rest_framework.authtoken',
     'celery',
     'django_celery_beat',
     "debug_toolbar",
@@ -32,6 +33,7 @@ INSTALLED_APPS = [
     'mptt',
     'corsheaders',
 
+    'token_app',
     'product_app',
     'user_actions_app',
     'user_app',
@@ -45,6 +47,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
 
+    'token_app.middleware.AddRefreshToBody',
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 
     'django.middleware.security.SecurityMiddleware',
@@ -149,8 +152,18 @@ REST_FRAMEWORK = {
 
 # DJOSER AUTH
 SIMPLE_JWT = {
-   'AUTH_HEADER_TYPES': ('JWT',),
+   'AUTH_HEADER_TYPES': ('Bearer', ),
+
+   # custom
+   "AUTH_COOKIE": "access",
+   "AUTH_COOKIE": "refresh",
+   "AUTH_COOKIE_DOMAIN": None,
+   "AUTH_COOKIE_SECURE": True,
+   "AUTH_COOKIE_HTTP_ONLY": True,
+   "AUTH_COOKIE_PATH": "/",
+   "AUTH_COOKIE_SAMESITE": "None"
 }
+
 
 DJOSER = {
     'USER_ID_FIELD': 'username',
@@ -224,4 +237,16 @@ CACHEOPS = {
 # PERIODIC TASKS
 # CHECK_EXPIRED_SALES = os.getenv('CHECK_EXPIRED_SALES')
 
+# CORS, CSRF
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
 
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTP_ONLY = True
+CSRF_COOKIE_SAMESITE= "Lax"
+
+CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
+
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "Lax"
